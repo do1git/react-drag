@@ -3,16 +3,17 @@ import { Draggable, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { IMsg } from "../atoms";
 
-const Wrapper = styled.div<{ inMsg_seq: IMsgProps["inMsg_seq"] }>`
+const Wrapper = styled.div<{ isDragging: boolean }>`
   width: 230px;
+  height: 360px;
   background-color: ${(props) => props.theme.msgColor};
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   margin: 10px 0;
-  padding: 10px 0;
+  padding: 10px 8px;
   border-radius: 10px;
-  margin-top: ${(props) => (props.inMsg_seq === 1 ? "50px" : "10px")};
+  box-sizing: content-box;
 `;
 
 const Title = styled.div`
@@ -22,18 +23,16 @@ const Title = styled.div`
 `;
 const Content = styled.div`
   text-align: center;
+  width: 100%;
   background-color: pink;
   padding: 20px 0;
 `;
 
-interface ISonsprops {
-  isDraggingOver: boolean;
-  isDraggingFromThis: boolean;
-}
-const Sons = styled.div<ISonsprops>`
+const Sons = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   background-color: #c1bdf9;
   border-radius: 10px;
   padding: 10px 10px;
@@ -42,7 +41,6 @@ const Sons = styled.div<ISonsprops>`
 const Son = styled.div<{ isDragging?: boolean }>`
   margin: 10px 0;
   width: 100%;
-  cursor: pointer;
   background-color: #a29bfe;
   border: 1px solid black;
   border-radius: 10px;
@@ -54,7 +52,7 @@ interface IMsgProps {
   id: number; //IMsg length+1
   name: string;
   parent_row_seq: number;
-  inMsg_seq: number;
+  inMsg_index: number;
   content: string;
   parent_id: number;
   row_seq: number;
@@ -65,7 +63,7 @@ interface IMsgProps {
 function Msg({
   id,
   parent_row_seq,
-  inMsg_seq,
+  inMsg_index,
   name,
   content,
   parent_id,
@@ -73,62 +71,50 @@ function Msg({
   col_seq,
   babies,
 }: IMsgProps) {
-  // const children = childMsgSelector(id);
   return (
-    <Wrapper inMsg_seq={inMsg_seq}>
-      <div>
-        parent_row_seq:{parent_row_seq} // inMsg_seq:{inMsg_seq}
-      </div>
-      <div>
-        row_seq:{row_seq} // col_seq:{col_seq}
-      </div>
-      <Title>{name}</Title>
-      <hr />
-      <Content>{content}</Content>
-      <hr />
-      <div>{`${col_seq}-${row_seq}`}</div>
-      <Droppable droppableId={`${col_seq}-${row_seq}`}>
-        {(magic, info) => (
-          <Sons
-            ref={magic.innerRef}
-            isDraggingOver={info.isDraggingOver}
-            isDraggingFromThis={Boolean(info.draggingFromThisWith)}
-            {...magic.droppableProps}
-          >
+    <Draggable draggableId={`${col_seq}-${row_seq}`} index={row_seq}>
+      {(magic, snapshot) => (
+        <Wrapper
+          isDragging={snapshot.isDragging}
+          ref={magic.innerRef}
+          {...magic.dragHandleProps}
+          {...magic.draggableProps}
+        >
+          <div>
+            <b>{`${col_seq}-${row_seq}`}</b>
+          </div>
+          <div>
+            parent_row_seq:{parent_row_seq} // inMsg_index:{inMsg_index}
+          </div>
+          <div>
+            row_seq:{row_seq} // col_seq:{col_seq}
+          </div>
+          <Title>{name}</Title>
+          <hr />
+          <Content>{content}</Content>
+          <hr />
+          <div>{`${col_seq}-${row_seq}`}</div>
+          <Sons>
             {babies ? (
-              babies.map((baby, babyIndex) => (
-                <Draggable
+              babies.map((baby) => (
+                <Son
                   key={`${col_seq + 1}-${baby.parent_row_seq}-${
-                    baby.inMsg_seq
+                    baby.inMsg_index
                   }`}
-                  draggableId={`${col_seq + 1}-${baby.parent_row_seq}-${
-                    baby.inMsg_seq
-                  }`}
-                  index={babyIndex}
                 >
-                  {(magic, snapshot) => (
-                    <Son
-                      isDragging={snapshot.isDragging}
-                      ref={magic.innerRef}
-                      {...magic.dragHandleProps}
-                      {...magic.draggableProps}
-                    >
-                      {baby.name}
-                      {`<<<${col_seq + 1}-${baby.parent_row_seq}-${
-                        baby.inMsg_seq
-                      }>>>`}
-                    </Son>
-                  )}
-                </Draggable>
+                  {baby.name}
+                  {`<<<${col_seq + 1}-${baby.parent_row_seq}-${
+                    baby.inMsg_index
+                  }>>>`}
+                </Son>
               ))
             ) : (
               <Son>마지막입니다</Son>
             )}
-            {magic.placeholder}
           </Sons>
-        )}
-      </Droppable>
-    </Wrapper>
+        </Wrapper>
+      )}
+    </Draggable>
   );
 }
 

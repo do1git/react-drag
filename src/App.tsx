@@ -1,7 +1,7 @@
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { scnrState } from "./atoms";
+import { msgsState, scnrSelector } from "./atoms";
 import Board from "./components/Board";
 import Step from "./components/Step";
 
@@ -21,65 +21,61 @@ const Columns = styled.div`
 `;
 
 function App() {
-  const [scnr, setScnr] = useRecoilState(scnrState);
-  const onDragEnd = ({ destination, draggableId, source }: DropResult) => {
-    console.log(source, "-->", destination);
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId) {
-      const [col_seq, row_seq] = source.droppableId.split("-");
-      setScnr((oldScnr) => {
-        const sourceBabyMsgGrp = [
-          ...Object.values(oldScnr[`c${parseInt(col_seq) + 1}`]),
-        ];
-        const targetMsg = sourceBabyMsgGrp[source.index];
-        sourceBabyMsgGrp.splice(source.index, 1);
-        sourceBabyMsgGrp.splice(destination.index, 0, targetMsg);
-        console.log(sourceBabyMsgGrp);
-        console.log(
-          Object.assign(
-            { [`c${parseInt(col_seq) + 1}`]: sourceBabyMsgGrp },
-            { ...oldScnr }
-          )
-        );
+  const setMsgs = useRecoilValue(msgsState);
+  const scnr = useRecoilValue<any>(scnrSelector);
 
-        return oldScnr;
-      });
-    }
+  const onDragEnd = () => {};
+  // const onDragEnd = ({
+  //   destination,
+  //   draggableId,
+  //   source,
+  //   combine,
+  // }: DropResult) => {
+  //   console.log(source, "-->", destination);
+  //   console.log("draggableId?-->", draggableId);
+  //   console.log("combine?-->", combine);
+  //   if (!destination) return;
+  //   if (source.droppableId === destination.droppableId) {
+  //     const [col_seq, row_seq] = source.droppableId.split("-");
+  //     setMsgs((oldScnr) => {
+  //       return oldScnr;
+  //     });
+  //   }
+  // };
+  //   // if (destination.droppableId !== source.droppableId) {
+  //   //   setScnr((allBoards) => {
+  //   //     const sourceBoard = [...allBoards[source.droppableId]];
+  //   //     const taskObj = sourceBoard[source.index];
+  //   //     const destBoard = [...allBoards[destination.droppableId]];
 
-    // if (destination.droppableId !== source.droppableId) {
-    //   setScnr((allBoards) => {
-    //     const sourceBoard = [...allBoards[source.droppableId]];
-    //     const taskObj = sourceBoard[source.index];
-    //     const destBoard = [...allBoards[destination.droppableId]];
+  //   //     sourceBoard.splice(source.index, 1);
+  //   //     destBoard.splice(destination.index, 0, taskObj);
 
-    //     sourceBoard.splice(source.index, 1);
-    //     destBoard.splice(destination.index, 0, taskObj);
+  //   //     return {
+  //   //       ...allBoards,
+  //   //       [source.droppableId]: sourceBoard,
+  //   //       [destination.droppableId]: destBoard,
+  //   //     };
+  //   //   });
+  //   // } else {
+  //   //   setScnr((allBoards) => {
+  //   //     const sourceBoard = [...allBoards[source.droppableId]];
+  //   //     const taskObj = sourceBoard[source.index];
+  //   //     sourceBoard.splice(source.index, 1);
+  //   //     sourceBoard.splice(destination.index, 0, taskObj);
 
-    //     return {
-    //       ...allBoards,
-    //       [source.droppableId]: sourceBoard,
-    //       [destination.droppableId]: destBoard,
-    //     };
-    //   });
-    // } else {
-    //   setScnr((allBoards) => {
-    //     const sourceBoard = [...allBoards[source.droppableId]];
-    //     const taskObj = sourceBoard[source.index];
-    //     sourceBoard.splice(source.index, 1);
-    //     sourceBoard.splice(destination.index, 0, taskObj);
-
-    //     return {
-    //       ...allBoards,
-    //       [source.droppableId]: sourceBoard,
-    //     };
-    //   });
-    // }
-  };
+  //   //     return {
+  //   //       ...allBoards,
+  //   //       [source.droppableId]: sourceBoard,
+  //   //     };
+  //   //   });
+  //   // }
+  // };
   let result = [];
   for (let i = 1; i <= Object.keys(scnr).length; i++) {
     const elements = [];
-    elements.push(scnr[`c${i}`]);
-    elements.push(scnr[`c${i + 1}`]);
+    elements.push(scnr[`s${i}`]);
+    elements.push(scnr[`s${i + 1}`]);
     result.push(elements);
   }
   // console.log("sdsdsdsd");
