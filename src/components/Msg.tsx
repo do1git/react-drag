@@ -3,7 +3,7 @@ import { Draggable, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { IMsg } from "../atoms";
 
-const Wrapper = styled.div<{ sort_me: IMsgProps["sort_me"] }>`
+const Wrapper = styled.div<{ inMsg_seq: IMsgProps["inMsg_seq"] }>`
   width: 230px;
   background-color: ${(props) => props.theme.msgColor};
   display: flex;
@@ -12,7 +12,7 @@ const Wrapper = styled.div<{ sort_me: IMsgProps["sort_me"] }>`
   margin: 10px 0;
   padding: 10px 0;
   border-radius: 10px;
-  margin-top: ${(props) => (props.sort_me === 1 ? "50px" : "10px")};
+  margin-top: ${(props) => (props.inMsg_seq === 1 ? "50px" : "10px")};
 `;
 
 const Title = styled.div`
@@ -53,35 +53,41 @@ const Son = styled.div<{ isDragging?: boolean }>`
 interface IMsgProps {
   id: number; //IMsg length+1
   name: string;
-  sort_parent: number;
-  sort_me: number;
+  parent_row_seq: number;
+  inMsg_seq: number;
   content: string;
   parent_id: number;
-  sort_seq: number;
+  row_seq: number;
+  col_seq: number;
   babies?: IMsg[];
 }
-//sort_seq, parent_id는 바로 상위에서 처리
+//row_seq, parent_id는 바로 상위에서 처리
 function Msg({
   id,
-  sort_parent,
-  sort_me,
+  parent_row_seq,
+  inMsg_seq,
   name,
   content,
   parent_id,
-  sort_seq,
+  row_seq,
+  col_seq,
   babies,
 }: IMsgProps) {
   // const children = childMsgSelector(id);
   return (
-    <Wrapper sort_me={sort_me}>
+    <Wrapper inMsg_seq={inMsg_seq}>
       <div>
-        sort_parent:{sort_parent} // sort_me:{sort_me}
+        parent_row_seq:{parent_row_seq} // inMsg_seq:{inMsg_seq}
+      </div>
+      <div>
+        row_seq:{row_seq} // col_seq:{col_seq}
       </div>
       <Title>{name}</Title>
       <hr />
       <Content>{content}</Content>
       <hr />
-      <Droppable droppableId={id + ""}>
+      <div>{`${col_seq}-${row_seq}`}</div>
+      <Droppable droppableId={`${col_seq}-${row_seq}`}>
         {(magic, info) => (
           <Sons
             ref={magic.innerRef}
@@ -91,7 +97,15 @@ function Msg({
           >
             {babies ? (
               babies.map((baby, babyIndex) => (
-                <Draggable draggableId={id + ""} index={babyIndex}>
+                <Draggable
+                  key={`${col_seq + 1}-${baby.parent_row_seq}-${
+                    baby.inMsg_seq
+                  }`}
+                  draggableId={`${col_seq + 1}-${baby.parent_row_seq}-${
+                    baby.inMsg_seq
+                  }`}
+                  index={babyIndex}
+                >
                   {(magic, snapshot) => (
                     <Son
                       isDragging={snapshot.isDragging}
@@ -100,6 +114,9 @@ function Msg({
                       {...magic.draggableProps}
                     >
                       {baby.name}
+                      {`<<<${col_seq + 1}-${baby.parent_row_seq}-${
+                        baby.inMsg_seq
+                      }>>>`}
                     </Son>
                   )}
                 </Draggable>

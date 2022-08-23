@@ -21,38 +21,36 @@ interface IStepProps {
 }
 
 function Step({ msgsHere, msgsNext, stepSeq }: IStepProps) {
-  // console.log("msgsHere");
-  // console.log(msgsHere);
-  // console.log("msgsNext");
-  // console.log(msgsNext);
-
   let result: any[] = [];
+  //각 메세지 당
   msgsHere.forEach((msgHere, i) => {
-    let miniResult: any[] = [];
-    miniResult.push(msgHere);
+    let eachResult = [];
+    //지금메세지에 해당하는
+    eachResult.push(msgHere);
+    eachResult.push(stepSeq);
     if (msgsNext) {
-      const msgNextGrp = msgsNext.filter((msg) => msg.sort_parent === i + 1);
-      msgNextGrp.sort((a, b) => a.sort_me - b.sort_me);
-      miniResult.push(msgNextGrp);
+      const msgNextGrp = msgsNext.filter((msg) => msg.parent_row_seq === i + 1);
+      msgNextGrp.sort((a, b) => a.inMsg_seq - b.inMsg_seq);
+      //자식메세지들을 넣는다
+      eachResult.push(msgNextGrp);
     }
-    result.push(miniResult);
+    result.push(eachResult);
   });
-  console.log("++++++++++++++++++");
-  console.log("result");
-  console.log(result);
+
   return (
     <Wrapper>
       {result.map((msg, msgSeq) => (
         <Msg
-          key={`sm${stepSeq}-${msgSeq + 1}`}
+          key={`msg${stepSeq}-${msgSeq + 1}`}
           id={msg[0].id}
-          sort_parent={msg[0].sort_parent}
-          sort_me={msg[0].sort_me}
+          parent_row_seq={msg[0].parent_row_seq}
+          inMsg_seq={msg[0].inMsg_seq}
           name={msg[0].name}
           content={msg[0].content}
           parent_id={msg[0].parent_id}
-          sort_seq={msg[0].sort_seq}
-          babies={msg[1]}
+          row_seq={msg[0].row_seq}
+          col_seq={msg[1]}
+          babies={msg[2]}
         />
       ))}
     </Wrapper>

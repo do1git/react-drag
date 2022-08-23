@@ -7,7 +7,7 @@ import { DefaultTheme } from "styled-components";
 // };
 
 export const darkTheme: DefaultTheme = {
-  bgColor: "#fab1a0",
-  stepColor: "white",
-  msgColor: "#dfe6e9",
+  bgColor: "#D2D79F",
+  stepColor: "#D2D79F",
+  msgColor: "#90B77D",
 };

@@ -23,8 +23,29 @@ const Columns = styled.div`
 function App() {
   const [scnr, setScnr] = useRecoilState(scnrState);
   const onDragEnd = ({ destination, draggableId, source }: DropResult) => {
-    console.log(destination, source);
-    // if (!destination) return;
+    console.log(source, "-->", destination);
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId) {
+      const [col_seq, row_seq] = source.droppableId.split("-");
+      setScnr((oldScnr) => {
+        const sourceBabyMsgGrp = [
+          ...Object.values(oldScnr[`c${parseInt(col_seq) + 1}`]),
+        ];
+        const targetMsg = sourceBabyMsgGrp[source.index];
+        sourceBabyMsgGrp.splice(source.index, 1);
+        sourceBabyMsgGrp.splice(destination.index, 0, targetMsg);
+        console.log(sourceBabyMsgGrp);
+        console.log(
+          Object.assign(
+            { [`c${parseInt(col_seq) + 1}`]: sourceBabyMsgGrp },
+            { ...oldScnr }
+          )
+        );
+
+        return oldScnr;
+      });
+    }
+
     // if (destination.droppableId !== source.droppableId) {
     //   setScnr((allBoards) => {
     //     const sourceBoard = [...allBoards[source.droppableId]];
