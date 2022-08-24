@@ -4,8 +4,8 @@ import styled from "styled-components";
 import { IMsg } from "../atoms";
 
 const Wrapper = styled.div<{ isDragging: boolean }>`
-  width: 230px;
-  height: 360px;
+  width: 200px;
+  height: 320px;
   background-color: ${(props) => props.theme.msgColor};
   display: flex;
   flex-direction: column;
@@ -14,6 +14,8 @@ const Wrapper = styled.div<{ isDragging: boolean }>`
   padding: 10px 8px;
   border-radius: 10px;
   box-sizing: content-box;
+
+  border: 1px solid black;
 `;
 
 const Title = styled.div`
@@ -49,30 +51,16 @@ const Son = styled.div<{ isDragging?: boolean }>`
 
 //나중에 Imsg:38 대신 안쓰는거 지우고 대체하자
 interface IMsgProps {
-  id: number; //IMsg length+1
-  name: string;
-  parent_row_seq: number;
-  inMsg_index: number;
-  content: string;
+  id: number;
   parent_id: number;
-  row_seq: number;
-  col_seq: number;
-  babies?: IMsg[];
+  inMsg_index: number;
+  name: string;
+  content: string;
 }
 //row_seq, parent_id는 바로 상위에서 처리
-function Msg({
-  id,
-  parent_row_seq,
-  inMsg_index,
-  name,
-  content,
-  parent_id,
-  row_seq,
-  col_seq,
-  babies,
-}: IMsgProps) {
+function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
   return (
-    <Draggable draggableId={`${col_seq}-${row_seq}`} index={row_seq}>
+    <Draggable draggableId={`drag-${id}`} index={inMsg_index}>
       {(magic, snapshot) => (
         <Wrapper
           isDragging={snapshot.isDragging}
@@ -80,21 +68,12 @@ function Msg({
           {...magic.dragHandleProps}
           {...magic.draggableProps}
         >
-          <div>
-            <b>{`${col_seq}-${row_seq}`}</b>
-          </div>
-          <div>
-            parent_row_seq:{parent_row_seq} // inMsg_index:{inMsg_index}
-          </div>
-          <div>
-            row_seq:{row_seq} // col_seq:{col_seq}
-          </div>
           <Title>{name}</Title>
           <hr />
           <Content>{content}</Content>
           <hr />
-          <div>{`${col_seq}-${row_seq}`}</div>
-          <Sons>
+          {`drag-${id}`}
+          {/* <Sons>
             {babies ? (
               babies.map((baby) => (
                 <Son
@@ -111,7 +90,7 @@ function Msg({
             ) : (
               <Son>마지막입니다</Son>
             )}
-          </Sons>
+          </Sons> */}
         </Wrapper>
       )}
     </Draggable>
