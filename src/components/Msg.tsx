@@ -1,7 +1,7 @@
 import React from "react";
 import { ArcherElement } from "react-archer";
 import { Draggable, Droppable } from "react-beautiful-dnd";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import { IMsg, msgsState } from "../atoms";
 
@@ -34,6 +34,7 @@ const Title = styled.div`
   text-align: center;
   font-weight: 800;
   font-size: 20px;
+  width: 100%;
 `;
 const Content = styled.div`
   text-align: center;
@@ -52,6 +53,10 @@ const Sons = styled.div`
   padding: 10px 10px;
 `;
 
+interface ISonResult {
+  aId: string;
+  title: string;
+}
 const Son = styled.div<{ isDragging?: boolean }>`
   margin: 10px 0;
   width: 100%;
@@ -60,12 +65,7 @@ const Son = styled.div<{ isDragging?: boolean }>`
   border-radius: 10px;
   text-align: center;
 `;
-interface ISonResult {
-  aId: string;
-  title: string;
-}
 
-//나중에 Imsg:38 대신 안쓰는거 지우고 대체하자
 interface IMsgProps {
   id: number;
   parent_id: number;
@@ -75,7 +75,7 @@ interface IMsgProps {
 }
 //row_seq, parent_id는 바로 상위에서 처리
 function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
-  const msgs = useRecoilValue(msgsState);
+  const [msgs, setMsgs] = useRecoilState(msgsState);
   //자식찾기
   const findMySons = (parentId: number) => {
     return msgs
@@ -90,6 +90,26 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
       sonsResult.push(data);
     }
   }
+
+  const onClickAddBtn = (e: any) => {
+    const toParentId = parseInt(e.target.dataset.id);
+    setMsgs((msgs) => {
+      let oldMsgs = [...msgs].sort((a, b) => b.id - a.id);
+      const newId = oldMsgs[0].id + 1;
+      const inMsg_index = oldMsgs.filter(
+        (msgs) => msgs.parent_id === toParentId
+      ).length;
+      oldMsgs.push({
+        id: newId,
+        parent_id: toParentId,
+        inMsg_index: inMsg_index,
+        name: `new and my id is ${newId}`,
+        content: `은행위치 알려줄까?`,
+      });
+      console.log(oldMsgs);
+      return oldMsgs;
+    });
+  };
 
   return (
     <Draggable draggableId={`drag-${id}`} index={inMsg_index}>
@@ -130,6 +150,9 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
             ) : (
               <></>
             )}
+            <Son onClick={onClickAddBtn} data-id={id}>
+              추가하기
+            </Son>
           </Sons>
         </Wrapper>
       )}
