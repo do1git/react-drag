@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { ArcherContainer } from "react-archer";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import styled from "styled-components";
@@ -22,6 +24,8 @@ function App() {
   const findMySons = (parentId: number) => {
     return msgs.filter((msg) => msg.parent_id === parentId);
   };
+
+  const archerRef = useRef<any>(null);
 
   const onDragEnd = ({
     destination,
@@ -249,16 +253,21 @@ function App() {
         });
       }
     }
+    console.log("changed");
+    console.log(archerRef);
+    archerRef.current?.refreshScreen();
   };
-
+  ////
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Wrapper>
-        {scnr.map((step, stepIndex) => (
-          <Step key={`s${stepIndex}`} msgsGrps={step} stepIndex={stepIndex} />
-        ))}
-      </Wrapper>
-    </DragDropContext>
+    <ArcherContainer strokeColor="black" ref={archerRef}>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Wrapper>
+          {scnr.map((step, stepIndex) => (
+            <Step key={`s${stepIndex}`} msgsGrps={step} stepIndex={stepIndex} />
+          ))}
+        </Wrapper>
+      </DragDropContext>
+    </ArcherContainer>
   );
 }
 

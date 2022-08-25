@@ -1,7 +1,9 @@
 import React from "react";
+import { ArcherElement } from "react-archer";
 import { Draggable, Droppable } from "react-beautiful-dnd";
+import { useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { IMsg } from "../atoms";
+import { IMsg, msgsState } from "../atoms";
 
 interface IWrapperProps {
   isDragging: boolean;
@@ -11,7 +13,7 @@ interface IWrapperProps {
 
 const Wrapper = styled.div<IWrapperProps>`
   width: 200px;
-  height: 320px;
+  min-height: 180px;
   background-color: ${(props) => props.theme.msgColor};
   background-color: ${(props) => (props.combineTargetFor ? "purple" : "")};
   display: flex;
@@ -45,7 +47,7 @@ const Sons = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  background-color: #c1bdf9;
+
   border-radius: 10px;
   padding: 10px 10px;
 `;
@@ -58,6 +60,10 @@ const Son = styled.div<{ isDragging?: boolean }>`
   border-radius: 10px;
   text-align: center;
 `;
+interface ISonResult {
+  aId: string;
+  title: string;
+}
 
 //나중에 Imsg:38 대신 안쓰는거 지우고 대체하자
 interface IMsgProps {
@@ -69,6 +75,22 @@ interface IMsgProps {
 }
 //row_seq, parent_id는 바로 상위에서 처리
 function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
+  const msgs = useRecoilValue(msgsState);
+  //자식찾기
+  const findMySons = (parentId: number) => {
+    return msgs
+      .filter((msg) => msg.parent_id === parentId)
+      .sort((a, b) => a.inMsg_index - b.inMsg_index);
+  };
+  const sonsArray = findMySons(id);
+  const sonsResult: ISonResult[] = [];
+  if (sonsArray !== []) {
+    for (let i = 0; i < sonsArray.length; i++) {
+      const data = { aId: `${sonsArray[i].id}`, title: sonsArray[i].name };
+      sonsResult.push(data);
+    }
+  }
+
   return (
     <Draggable draggableId={`drag-${id}`} index={inMsg_index}>
       {(magic, snapshot) => (
@@ -80,29 +102,35 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
           {...magic.dragHandleProps}
           {...magic.draggableProps}
         >
-          <Title>{name}</Title>
+          <ArcherElement id={`aT${id}`}>
+            <Title>{name}</Title>
+          </ArcherElement>
+
           <hr />
           <Content>{content}</Content>
           <hr />
           {`drag-${id}`}
-          {/* <Sons>
-            {babies ? (
-              babies.map((baby) => (
-                <Son
-                  key={`${col_seq + 1}-${baby.parent_row_seq}-${
-                    baby.inMsg_index
-                  }`}
+          <Sons>
+            {sonsResult.length !== 0 ? (
+              sonsResult.map((son) => (
+                <ArcherElement
+                  key={`aS${son.aId}`}
+                  id={`aS${son.aId}`}
+                  relations={[
+                    {
+                      targetId: `aT${son.aId}`,
+                      targetAnchor: "left",
+                      sourceAnchor: "right",
+                    },
+                  ]}
                 >
-                  {baby.name}
-                  {`<<<${col_seq + 1}-${baby.parent_row_seq}-${
-                    baby.inMsg_index
-                  }>>>`}
-                </Son>
+                  <Son>{son.title}</Son>
+                </ArcherElement>
               ))
             ) : (
-              <Son>마지막입니다</Son>
+              <></>
             )}
-          </Sons> */}
+          </Sons>
         </Wrapper>
       )}
     </Draggable>

@@ -10,7 +10,7 @@ interface IWrapperProps {
 }
 
 const Wrapper = styled.div<IWrapperProps>`
-  min-height: 1300px;
+  min-height: 1000px;
   width: 300px;
 
   display: flex;
