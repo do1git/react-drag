@@ -16,8 +16,12 @@ const Wrapper = styled.div`
 `;
 
 function App() {
-  const setMsgs = useSetRecoilState(msgsState);
+  const [msgs, setMsgs] = useRecoilState(msgsState);
   const scnr = useRecoilValue<IMsg[][][]>(scnrSelector);
+
+  const findMySons = (parentId: number) => {
+    return msgs.filter((msg) => msg.parent_id === parentId);
+  };
 
   const onDragEnd = ({
     destination,
@@ -29,7 +33,103 @@ function App() {
     console.log(source, "-->", destination);
     console.log("draggableId?-->", draggableId);
     console.log("combine?-->", combine);
-    if (!destination) return;
+    console.log(`combine?!${combine !== null}`);
+    //결합시(자식이 될때)
+    if (combine) {
+      console.log("combine!!!!!!!!!!!");
+      const fromId = parseInt(draggableId.split("drag-")[1]);
+      const fromParentId = parseInt(source.droppableId.split("drop-")[1]);
+      // const toParentId = parseInt(destination.droppableId.split("drop-")[1]);
+      const toParentId = parseInt(combine.draggableId.split("drag-")[1]);
+      const fromInMsgIndex = source.index;
+      // const toInMsgIndex = destination.index;
+      const toInMsgIndex = findMySons(toParentId).length;
+      console.log(
+        fromId,
+        fromParentId,
+        toParentId,
+        fromInMsgIndex,
+        toInMsgIndex
+      );
+      //부모의 자식의 자식이 될수없다
+      if (findMySons(fromId).find((son) => son.parent_id === fromId)) {
+        console.log("ILLIGAL in combine");
+      } else {
+        setMsgs((msgs) => {
+          let oldMsgs = [...msgs];
+          let inMsgIndexChangedMsgs: IMsg[] = [];
+          //from이미존재하는거 수정 내부에서 inMsg인덱스만 수정
+          oldMsgs
+            .filter(
+              (msgs) =>
+                msgs.parent_id === fromParentId &&
+                msgs.inMsg_index > fromInMsgIndex
+            )
+            .map((msg) => {
+              console.log("pityFrom", msg.id);
+              const originalInMsgIndex = msg.inMsg_index;
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              inMsgIndexChangedMsgs.push({
+                ...msg,
+                inMsg_index: originalInMsgIndex - 1,
+              });
+            });
+
+          //TO이미존재하는거 수정 내부에서 inMsg인덱스만 수정
+          oldMsgs
+            .filter(
+              (msgs) =>
+                msgs.parent_id === toParentId && msgs.inMsg_index > toInMsgIndex
+            )
+            .map((msg) => {
+              console.log("pityTo", msg.id);
+              const originalInMsgIndex = msg.inMsg_index;
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              inMsgIndexChangedMsgs.push({
+                ...msg,
+                inMsg_index: originalInMsgIndex + 1,
+              });
+            });
+
+          oldMsgs.map((msg) => {
+            if (
+              msg.parent_id === toParentId &&
+              msg.inMsg_index === toInMsgIndex
+            ) {
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              oldMsgs.push({
+                ...msg,
+                inMsg_index: fromInMsgIndex,
+              });
+            }
+          });
+          //드래그한 메세지
+          oldMsgs.map((msg) => {
+            if (msg.id === fromId) {
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              oldMsgs.push({
+                ...msg,
+                parent_id: toParentId,
+                inMsg_index: toInMsgIndex,
+              });
+            }
+          });
+
+          return [...oldMsgs, ...inMsgIndexChangedMsgs];
+        });
+      }
+    }
+    // 제자리 이동시(예외처리)
+    if (!destination) {
+      console.log("목적지가 없어여");
+      return;
+    }
+
+    //같은곳으로 이동시
     if (
       source.droppableId === destination.droppableId &&
       source.index !== destination.index
@@ -61,114 +161,95 @@ function App() {
         });
         return oldMsgs;
       });
-    } else if (source.droppableId !== destination.droppableId) {
+    }
+    //다른곳으로 이동시
+    if (source.droppableId !== destination.droppableId) {
       console.log("different area");
       const fromId = parseInt(draggableId.split("drag-")[1]);
       const fromParentId = parseInt(source.droppableId.split("drop-")[1]);
       const toParentId = parseInt(destination.droppableId.split("drop-")[1]);
       const fromInMsgIndex = source.index;
       const toInMsgIndex = destination.index;
-
-      setMsgs((msgs) => {
-        let oldMsgs = [...msgs];
-        let inMsgIndexChangedMsgs: IMsg[] = [];
-        //TO이미존재하는거 수정 내부에서 inMsg인덱스만 수정
-        oldMsgs
-          .filter(
-            (msgs) =>
-              msgs.parent_id === fromParentId &&
-              msgs.inMsg_index <= fromInMsgIndex
-          )
-          .map((msg) => {
-            console.log("pity", msg.id);
-            const originalInMsgIndex = msg.inMsg_index;
-            const indexInOldMsgs = oldMsgs.indexOf(msg);
-            oldMsgs.splice(indexInOldMsgs, 1);
-            inMsgIndexChangedMsgs.push({
-              ...msg,
-              inMsg_index: originalInMsgIndex - 1,
+      console.log(
+        fromId,
+        fromParentId,
+        toParentId,
+        fromInMsgIndex,
+        toInMsgIndex
+      );
+      //부모의 자식의 자식이 될수없다
+      if (findMySons(fromId).find((son) => son.parent_id === fromId)) {
+        console.log("ILLIGAL");
+      } else {
+        setMsgs((msgs) => {
+          let oldMsgs = [...msgs];
+          let inMsgIndexChangedMsgs: IMsg[] = [];
+          //from이미존재하는거 수정 내부에서 inMsg인덱스만 수정
+          oldMsgs
+            .filter(
+              (msgs) =>
+                msgs.parent_id === fromParentId &&
+                msgs.inMsg_index > fromInMsgIndex
+            )
+            .map((msg) => {
+              console.log("pityFrom", msg.id);
+              const originalInMsgIndex = msg.inMsg_index;
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              inMsgIndexChangedMsgs.push({
+                ...msg,
+                inMsg_index: originalInMsgIndex - 1,
+              });
             });
+
+          //TO이미존재하는거 수정 내부에서 inMsg인덱스만 수정
+          oldMsgs
+            .filter(
+              (msgs) =>
+                msgs.parent_id === toParentId && msgs.inMsg_index > toInMsgIndex
+            )
+            .map((msg) => {
+              console.log("pityTo", msg.id);
+              const originalInMsgIndex = msg.inMsg_index;
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              inMsgIndexChangedMsgs.push({
+                ...msg,
+                inMsg_index: originalInMsgIndex + 1,
+              });
+            });
+
+          oldMsgs.map((msg) => {
+            if (
+              msg.parent_id === toParentId &&
+              msg.inMsg_index === toInMsgIndex
+            ) {
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              oldMsgs.push({
+                ...msg,
+                inMsg_index: fromInMsgIndex,
+              });
+            }
+          });
+          //드래그한 메세지
+          oldMsgs.map((msg) => {
+            if (msg.id === fromId) {
+              const indexInOldMsgs = oldMsgs.indexOf(msg);
+              oldMsgs.splice(indexInOldMsgs, 1);
+              oldMsgs.push({
+                ...msg,
+                parent_id: toParentId,
+                inMsg_index: toInMsgIndex,
+              });
+            }
           });
 
-        //TO이미존재하는거 수정 내부에서 inMsg인덱스만 수정
-        oldMsgs
-          .filter(
-            (msgs) =>
-              msgs.parent_id === toParentId && msgs.inMsg_index <= toInMsgIndex
-          )
-          .map((msg) => {
-            console.log("pity", msg.id);
-            const originalInMsgIndex = msg.inMsg_index;
-            const indexInOldMsgs = oldMsgs.indexOf(msg);
-            oldMsgs.splice(indexInOldMsgs, 1);
-            inMsgIndexChangedMsgs.push({
-              ...msg,
-              inMsg_index: originalInMsgIndex + 1,
-            });
-          });
-
-        oldMsgs.map((msg) => {
-          if (
-            msg.parent_id === toParentId &&
-            msg.inMsg_index === toInMsgIndex
-          ) {
-            const indexInOldMsgs = oldMsgs.indexOf(msg);
-            oldMsgs.splice(indexInOldMsgs, 1);
-            oldMsgs.push({
-              ...msg,
-              inMsg_index: fromInMsgIndex,
-            });
-          }
+          return [...oldMsgs, ...inMsgIndexChangedMsgs];
         });
-        //드래그한 메세지
-        oldMsgs.map((msg) => {
-          if (msg.id === fromId) {
-            const indexInOldMsgs = oldMsgs.indexOf(msg);
-            oldMsgs.splice(indexInOldMsgs, 1);
-            oldMsgs.push({
-              ...msg,
-              parent_id: toParentId,
-              inMsg_index: toInMsgIndex,
-            });
-          }
-        });
-
-        console.log("inMsgIndexChanfedMsgs finished");
-        console.log(inMsgIndexChangedMsgs);
-        console.log("calculation finished");
-        console.log([...oldMsgs, ...inMsgIndexChangedMsgs]);
-        return [...oldMsgs, ...inMsgIndexChangedMsgs];
-      });
+      }
     }
   };
-  // if (destination.droppableId !== source.droppableId) {
-  //   setScnr((allBoards) => {
-  //     const sourceBoard = [...allBoards[source.droppableId]];
-  //     const taskObj = sourceBoard[source.index];
-  //     const destBoard = [...allBoards[destination.droppableId]];
-
-  //     sourceBoard.splice(source.index, 1);
-  //     destBoard.splice(destination.index, 0, taskObj);
-
-  //     return {
-  //       ...allBoards,
-  //       [source.droppableId]: sourceBoard,
-  //       [destination.droppableId]: destBoard,
-  //     };
-  //   });
-  // } else {
-  //   setScnr((allBoards) => {
-  //     const sourceBoard = [...allBoards[source.droppableId]];
-  //     const taskObj = sourceBoard[source.index];
-  //     sourceBoard.splice(source.index, 1);
-  //     sourceBoard.splice(destination.index, 0, taskObj);
-
-  //     return {
-  //       ...allBoards,
-  //       [source.droppableId]: sourceBoard,
-  //     };
-  //   });
-  // }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>

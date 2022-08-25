@@ -36,30 +36,34 @@ interface IMsgGrpProps {
 }
 
 function MsgGrp({ msgs, grpIndex }: IMsgGrpProps) {
-  return (
-    <Droppable droppableId={`drop-${msgs[0].parent_id}`}>
-      {(magic, info) => (
-        <Wrapper
-          ref={magic.innerRef}
-          isDraggingOver={info.isDraggingOver}
-          isDraggingFromThis={Boolean(info.draggingFromThisWith)}
-          {...magic.droppableProps}
-        >
-          {msgs.map((msg, msgIndex) => (
-            <Msg
-              id={msg.id}
-              parent_id={msg.parent_id}
-              inMsg_index={msg.inMsg_index}
-              name={msg.name}
-              content={msg.content}
-              key={`msg${msg.id}`}
-            />
-          ))}
-          {magic.placeholder}
-        </Wrapper>
-      )}
-    </Droppable>
-  );
+  if (msgs.length === 0) {
+    return <></>;
+  } else {
+    return (
+      <Droppable droppableId={`drop-${msgs[0].parent_id}`} isCombineEnabled>
+        {(magic, info) => (
+          <Wrapper
+            ref={magic.innerRef}
+            isDraggingOver={info.isDraggingOver}
+            isDraggingFromThis={Boolean(info.draggingFromThisWith)}
+            {...magic.droppableProps}
+          >
+            {msgs.map((msg, msgIndex) => (
+              <Msg
+                id={msg.id}
+                parent_id={msg.parent_id}
+                inMsg_index={msg.inMsg_index}
+                name={msg.name}
+                content={msg.content}
+                key={`msg${msg.id}`}
+              />
+            ))}
+            {magic.placeholder}
+          </Wrapper>
+        )}
+      </Droppable>
+    );
+  }
 }
 
 export default MsgGrp;

@@ -80,7 +80,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 1,
       parent_id: 0,
-      inMsg_index: 1,
+      inMsg_index: 0,
       name: "시작1-1-1",
       content: "안녕하세요 고객님 어떤일이세요?",
       // parent_row_seq: 0,
@@ -90,7 +90,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 2,
       parent_id: 3,
-      inMsg_index: 1,
+      inMsg_index: 0,
       name: "상담해주세요im2-1-1",
       content: "오프라인 업무도와드릴까요?",
       // parent_row_seq: 1,
@@ -100,7 +100,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 3,
       parent_id: 1,
-      inMsg_index: 1,
+      inMsg_index: 0,
       name: "ars로 바꿔주세요im2-1-2",
       content: "보이는ars? 누르는ars?",
       // parent_row_seq: 1,
@@ -110,7 +110,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 5,
       parent_id: 2,
-      inMsg_index: 1,
+      inMsg_index: 0,
       name: "오프라인상담-은행im3-1-1",
       content: "은행위치 알려줄까?",
       // parent_row_seq: 1,
@@ -120,7 +120,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 4,
       parent_id: 2,
-      inMsg_index: 2,
+      inMsg_index: 1,
       name: "오프라인상담-출장im3-1-2",
       content: "시간언제 괜찮으세요?",
       // parent_row_seq: 1,
@@ -130,7 +130,7 @@ export const msgsState = atom<IMsg[]>({
     {
       id: 6,
       parent_id: 3,
-      inMsg_index: 2,
+      inMsg_index: 1,
       name: "종료im3-2-1?",
       content: "잘가세요",
       // parent_row_seq: 2,
@@ -139,69 +139,3 @@ export const msgsState = atom<IMsg[]>({
     },
   ],
 });
-
-// export const msgsState = atom<IMsg[]>({
-//   key: "msgs",
-//   default: [
-//     {
-//       id: 1,
-//       parent_row_seq: 0,
-//       inMsg_index: 1,
-//       name: "시작1-1-1",
-//       content: "안녕하세요 고객님 어떤일이세요?",
-//       parent_id: 0,
-//       step_index: 1,
-//       row_index: 1,
-//     },
-//     {
-//       id: 2,
-//       parent_row_seq: 1,
-//       inMsg_index: 1,
-//       name: "상담해주세요im2-1-1",
-//       content: "오프라인 업무도와드릴까요?",
-//       parent_id: 1,
-//       step_index: 2,
-//       row_index: 1,
-//     },
-//     {
-//       id: 3,
-//       parent_row_seq: 1,
-//       inMsg_index: 2,
-//       name: "ars로 바꿔주세요im2-1-2",
-//       content: "보이는ars? 누르는ars?",
-//       parent_id: 1,
-//       step_index: 2,
-//       row_index: 2,
-//     },
-//     {
-//       id: 5,
-//       parent_row_seq: 1,
-//       inMsg_index: 1,
-//       name: "오프라인상담-은행im3-1-1",
-//       content: "은행위치 알려줄까?",
-//       parent_id: 2,
-//       step_index: 3,
-//       row_index: 1,
-//     },
-//     {
-//       id: 4,
-//       parent_row_seq: 1,
-//       inMsg_index: 2,
-//       name: "오프라인상담-출장im3-1-2",
-//       content: "시간언제 괜찮으세요?",
-//       parent_id: 2,
-//       step_index: 3,
-//       row_index: 2,
-//     },
-//     {
-//       id: 6,
-//       parent_row_seq: 2,
-//       inMsg_index: 1,
-//       name: "종료im3-2-1?",
-//       content: "잘가세요",
-//       parent_id: 3,
-//       step_index: 3,
-//       row_index: 3,
-//     },
-//   ],
-// });

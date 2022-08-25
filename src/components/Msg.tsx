@@ -3,10 +3,17 @@ import { Draggable, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { IMsg } from "../atoms";
 
-const Wrapper = styled.div<{ isDragging: boolean }>`
+interface IWrapperProps {
+  isDragging: boolean;
+  draggingOver: boolean;
+  combineTargetFor: boolean;
+}
+
+const Wrapper = styled.div<IWrapperProps>`
   width: 200px;
   height: 320px;
   background-color: ${(props) => props.theme.msgColor};
+  background-color: ${(props) => (props.combineTargetFor ? "purple" : "")};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,6 +22,9 @@ const Wrapper = styled.div<{ isDragging: boolean }>`
   border-radius: 10px;
   box-sizing: content-box;
 
+  :hover {
+    background-color: yellow;
+  }
   border: 1px solid black;
 `;
 
@@ -64,6 +74,8 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
       {(magic, snapshot) => (
         <Wrapper
           isDragging={snapshot.isDragging}
+          draggingOver={Boolean(snapshot.draggingOver)}
+          combineTargetFor={Boolean(snapshot.combineTargetFor)}
           ref={magic.innerRef}
           {...magic.dragHandleProps}
           {...magic.draggableProps}
