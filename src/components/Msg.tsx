@@ -12,17 +12,22 @@ interface IWrapperProps {
 }
 
 const Wrapper = styled.div<IWrapperProps>`
+  /* width: 200px; */
   width: 200px;
   min-height: 180px;
-  background-color: ${(props) => props.theme.msgColor};
-  background-color: ${(props) => (props.combineTargetFor ? "purple" : "")};
+  background-color: ${(props) =>
+    props.combineTargetFor
+      ? "purple"
+      : props.isDragging
+      ? "transparent"
+      : props.theme.msgColor};
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 10px 0;
-  padding: 10px 8px;
+  margin: ${(props) => (props.isDragging ? "" : "10px 0")};
+  padding: ${(props) => (props.isDragging ? "20px 8px" : "10px 8px")};
   border-radius: 10px;
-  box-sizing: content-box;
+  box-sizing: border-box;
 
   :hover {
     background-color: yellow;
@@ -65,6 +70,7 @@ const Son = styled.div<{ isDragging?: boolean }>`
   border-radius: 10px;
   text-align: center;
 `;
+const SonBtn = styled(Son)``;
 
 interface IMsgProps {
   id: number;
@@ -111,8 +117,52 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
     });
   };
 
+  const findMySonsAndKill = (myIds: number[]) => {
+    const killedSonIds: number[] = [];
+    //자식있으면 다 버리기
+    myIds.forEach((myId) => {
+      setMsgs((msgs) => {
+        let oldMsgs = [...msgs];
+        oldMsgs
+          .filter((msgs) => msgs.parent_id === myId)
+          .map((msg) => {
+            killedSonIds.push(msg.id);
+            const indexInOldMsgs = oldMsgs.indexOf(msg);
+            oldMsgs.splice(indexInOldMsgs, 1);
+          });
+        return oldMsgs;
+      });
+    });
+    if (killedSonIds.length !== 0) {
+      findMySonsAndKill(killedSonIds);
+    }
+    return killedSonIds;
+  };
+
+  const onClickDelBtn = (e: any) => {
+    const fromId = parseInt(e.target.dataset.id);
+    //자식삭제후
+    findMySonsAndKill([fromId]);
+    //대상 fromId도 삭제
+    setMsgs((msgs) => {
+      let oldMsgs = [...msgs];
+      oldMsgs
+        .filter((msgs) => msgs.id === fromId)
+        .map((msg) => {
+          const indexInOldMsgs = oldMsgs.indexOf(msg);
+          oldMsgs.splice(indexInOldMsgs, 1);
+        });
+      return oldMsgs;
+    });
+    return;
+  };
+
   return (
-    <Draggable draggableId={`drag-${id}`} index={inMsg_index}>
+    <Draggable
+      draggableId={`drag-${id}`}
+      index={inMsg_index}
+      isDragDisabled={id === 1 ? true : false}
+    >
       {(magic, snapshot) => (
         <Wrapper
           isDragging={snapshot.isDragging}
@@ -129,7 +179,7 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
           <hr />
           <Content>{content}</Content>
           <hr />
-          {`drag-${id}`}
+          {`drag-${id} // seq: ${inMsg_index}`}
           <Sons>
             {sonsResult.length !== 0 ? (
               sonsResult.map((son) => (
@@ -150,9 +200,12 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
             ) : (
               <></>
             )}
-            <Son onClick={onClickAddBtn} data-id={id}>
+            <SonBtn onClick={onClickAddBtn} data-id={id}>
               추가하기
-            </Son>
+            </SonBtn>
+            <SonBtn onClick={onClickDelBtn} data-id={id}>
+              삭제하기
+            </SonBtn>
           </Sons>
         </Wrapper>
       )}

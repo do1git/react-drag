@@ -4,13 +4,13 @@ import { IMsg } from "../atoms";
 import Msg from "./Msg";
 
 interface IWrapperProps {
-  isDraggingOver?: boolean;
-  isDraggingFromThis?: boolean;
+  isDraggingOver: boolean;
+  isDraggingFromThis: boolean;
 }
 
 const Wrapper = styled.div<IWrapperProps>`
-  min-height: 300px;
-  width: 95%;
+  /* min-height: 300px; */
+  width: 100%;
 
   display: flex;
   flex-direction: column;
@@ -26,7 +26,7 @@ const Wrapper = styled.div<IWrapperProps>`
       ? "orange"
       : props.theme.stepColor};
   flex-grow: 1;
-  padding: 5px;
+  padding: 5px 0 200px 0;
   transition: background-color 0.3s ease-in-out;
 `;
 
@@ -48,6 +48,7 @@ function MsgGrp({ msgs, grpIndex }: IMsgGrpProps) {
             isDraggingFromThis={Boolean(info.draggingFromThisWith)}
             {...magic.droppableProps}
           >
+            drop-${msgs[0].parent_id}
             {msgs.map((msg, msgIndex) => (
               <Msg
                 id={msg.id}

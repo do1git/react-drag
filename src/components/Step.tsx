@@ -10,14 +10,12 @@ interface IWrapperProps {
 }
 
 const Wrapper = styled.div<IWrapperProps>`
-  min-height: 1000px;
+  min-height: 100%;
   width: 300px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 3px solid black;
-  border-radius: 10px;
 
   margin: 10px;
 `;

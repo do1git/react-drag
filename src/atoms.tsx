@@ -37,7 +37,7 @@ export const scnrSelector = selector({
     let beforeStepI = 0;
     let newStep: IMsg[][] = [];
     let allEmpty = true;
-    for (let i = 0; i < 10; i++) {
+    while (1) {
       // if(idsInStep(beforeStep).)
       //아이디를 리스트로 받아서 자식들 안나오면 중지/.
       allEmpty = true;

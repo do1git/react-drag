@@ -1,36 +1,89 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ArcherContainer } from "react-archer";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
+import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { markAsUntransferable } from "worker_threads";
 import { IMsg, msgsState, scnrSelector } from "./atoms";
-import Board from "./components/Board";
 import Step from "./components/Step";
 
 const Wrapper = styled.div`
   width: 100vw;
-  height: 100vh;
-  padding: 20px;
+  height: 95vh;
+  padding: 10px;
   display: flex;
   justify-content: flex-start;
+  align-items: flex-start;
+`;
+interface ITrashCanProps {
+  isDraggingOver: boolean;
+  isDraggingFromThis: boolean;
+}
+
+const TrahCan = styled.div<ITrashCanProps>`
+  width: 50px;
+  height: 50px;
+  background-color: red;
+  color: black;
+  border-radius: 10%;
+  opacity: ${(props) => (props.isDraggingOver ? "1" : "0.3")};
+  display: flex;
+  justify-content: center;
   align-items: center;
 `;
 
 function App() {
+  const archerRef = useRef<any>(null);
+  console.log("**********RERENDER*********");
+  archerRef.current?.refreshScreen();
+  useEffect(() => {}, [ArcherContainer]);
   const [msgs, setMsgs] = useRecoilState(msgsState);
 
   const scnr = useRecoilValue<IMsg[][][]>(scnrSelector);
 
+  /**
+   *
+   * @param myId 대상 아이디
+   * @returns myId의 자식array
+   */
   const findMySons = (myId: number) => {
     return msgs.filter((msg) => msg.parent_id === myId);
   };
+
+  /**
+   *
+   * @param myId 대상 아이디
+   * @returns myId의 부모 (1개임)
+   */
   const findMyParent = (myId: number) => {
     return msgs.filter((msg) => msg.id === myId)[0].parent_id;
   };
-
-  const archerRef = useRef<any>(null);
-  archerRef.current?.refreshScreen();
+  /**
+   *
+   * @param myId 대상 아이디array
+   * @do 찾은 자식을 삭제
+   * @returns killedSonIds myId의 자식id array
+   */
+  const findMySonsAndKill = (myIds: number[]) => {
+    const killedSonIds: number[] = [];
+    //자식있으면 다 버리기
+    myIds.forEach((myId) => {
+      setMsgs((msgs) => {
+        let oldMsgs = [...msgs];
+        oldMsgs
+          .filter((msgs) => msgs.parent_id === myId)
+          .map((msg) => {
+            killedSonIds.push(msg.id);
+            const indexInOldMsgs = oldMsgs.indexOf(msg);
+            oldMsgs.splice(indexInOldMsgs, 1);
+          });
+        return oldMsgs;
+      });
+    });
+    if (killedSonIds.length !== 0) {
+      findMySonsAndKill(killedSonIds);
+    }
+    return killedSonIds;
+  };
 
   const onDragEnd = ({
     destination,
@@ -43,6 +96,26 @@ function App() {
     console.log("draggableId?-->", draggableId);
     console.log("combine?-->", combine);
     console.log(`combine?!${combine !== null}`);
+
+    //Case trashCan
+    if (destination?.droppableId === "trashCan") {
+      const fromId = parseInt(draggableId.split("drag-")[1]);
+      //자식삭제후
+      findMySonsAndKill([fromId]);
+      //대상 fromId도 삭제
+      setMsgs((msgs) => {
+        let oldMsgs = [...msgs];
+        oldMsgs
+          .filter((msgs) => msgs.id === fromId)
+          .map((msg) => {
+            const indexInOldMsgs = oldMsgs.indexOf(msg);
+            oldMsgs.splice(indexInOldMsgs, 1);
+          });
+        return oldMsgs;
+      });
+      return;
+    }
+
     //Case#0 도착지는 절대 step index = 0 불가
     if (destination?.droppableId.split("drop-")[1] === "0") {
       console.log("첫번째 기둥은 못가여 ^^");
@@ -156,12 +229,12 @@ function App() {
         return [...oldMsgs, ...inMsgIndexChangedMsgs];
       });
     }
-    // 제자리 이동시(예외처리)
+    //Case#2 제자리 이동시(예외처리)
     if (!destination) {
       console.log("목적지가 없어여");
       return;
     }
-    //같은곳에서 이동시
+    //Case#3 같은곳에서 이동시
     if (
       source.droppableId === destination.droppableId &&
       source.index !== destination.index
@@ -194,7 +267,7 @@ function App() {
         return oldMsgs;
       });
     }
-    //다른곳으로 이동시
+    //Case#4다른곳으로 이동시
     if (source.droppableId !== destination.droppableId) {
       console.log("different area");
       const fromId = parseInt(draggableId.split("drag-")[1]);
@@ -212,14 +285,7 @@ function App() {
         toInMsgIndex,
         toId
       );
-      // //부모의 자식의 자식이 될수없다
-      // if (findMySons(fromId).find((son) => son.parent_id === fromId)) {
-      //   console.log(
-      //     "ILLIGAL",
-      //     findMySons(fromId).find((son) => son.parent_id === fromId)
-      //   );
-      //   return;
-      // } else {}
+
       //자기가 자기 자손 밑인 라인으로 갈 경우 금지
       let ancestorId = toParentId;
       let iligalFlag = false;
@@ -271,7 +337,7 @@ function App() {
         oldMsgs
           .filter(
             (msgs) =>
-              msgs.parent_id === toParentId && msgs.inMsg_index > toInMsgIndex
+              msgs.parent_id === toParentId && msgs.inMsg_index >= toInMsgIndex
           )
           .map((msg) => {
             console.log("pityTo", msg.id);
@@ -314,7 +380,6 @@ function App() {
       });
     }
   };
-  ////
   return (
     <ArcherContainer noCurves={true} strokeColor="black" ref={archerRef}>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -323,6 +388,18 @@ function App() {
             <Step key={`s${stepIndex}`} msgsGrps={step} stepIndex={stepIndex} />
           ))}
         </Wrapper>
+        <Droppable droppableId={`trashCan`} isCombineEnabled>
+          {(magic, info) => (
+            <TrahCan
+              ref={magic.innerRef}
+              isDraggingOver={info.isDraggingOver}
+              isDraggingFromThis={Boolean(info.draggingFromThisWith)}
+              {...magic.droppableProps}
+            >
+              Trash
+            </TrahCan>
+          )}
+        </Droppable>
       </DragDropContext>
     </ArcherContainer>
   );
