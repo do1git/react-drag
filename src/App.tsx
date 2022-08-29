@@ -5,19 +5,34 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import { IMsg, msgsState, scnrSelector } from "./atoms";
 import Step from "./components/Step";
+import { useMainScroll } from "./hooks";
 
 const Wrapper = styled.div`
+  box-sizing: content-box;
   width: 100vw;
-  height: 95vh;
-  padding: 10px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
+  height: 100vh;
 `;
 interface ITrashCanProps {
   isDraggingOver: boolean;
   isDraggingFromThis: boolean;
 }
+const Main = styled.div`
+  width: 100%;
+  height: 90%;
+  padding: 10px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow: auto;
+  border: 5px blue solid;
+`;
+const ToolBar = styled.div`
+  width: 100%;
+  height: 10%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
 const TrahCan = styled.div<ITrashCanProps>`
   width: 50px;
@@ -32,11 +47,17 @@ const TrahCan = styled.div<ITrashCanProps>`
 `;
 
 function App() {
-  const archerRef = useRef<any>(null);
-  console.log("**********RERENDER*********");
-  archerRef.current?.refreshScreen();
-  useEffect(() => {}, [ArcherContainer]);
   const [msgs, setMsgs] = useRecoilState(msgsState);
+
+  const archerRef = useRef<any>(null);
+
+  useEffect(() => {
+    console.log("**********RERENDER*********");
+    archerRef.current?.refreshScreen();
+  }, [msgs]);
+
+  //스크롤시 화살표 움직임
+  const updateArcher = () => archerRef.current?.refreshScreen();
 
   const scnr = useRecoilValue<IMsg[][][]>(scnrSelector);
 
@@ -384,22 +405,30 @@ function App() {
     <ArcherContainer noCurves={true} strokeColor="black" ref={archerRef}>
       <DragDropContext onDragEnd={onDragEnd}>
         <Wrapper>
-          {scnr.map((step, stepIndex) => (
-            <Step key={`s${stepIndex}`} msgsGrps={step} stepIndex={stepIndex} />
-          ))}
+          <Main onScroll={updateArcher}>
+            {scnr.map((step, stepIndex) => (
+              <Step
+                key={`s${stepIndex}`}
+                msgsGrps={step}
+                stepIndex={stepIndex}
+              />
+            ))}
+          </Main>
+          <ToolBar>
+            <Droppable droppableId={`trashCan`} isCombineEnabled>
+              {(magic, info) => (
+                <TrahCan
+                  ref={magic.innerRef}
+                  isDraggingOver={info.isDraggingOver}
+                  isDraggingFromThis={Boolean(info.draggingFromThisWith)}
+                  {...magic.droppableProps}
+                >
+                  Trash
+                </TrahCan>
+              )}
+            </Droppable>
+          </ToolBar>
         </Wrapper>
-        <Droppable droppableId={`trashCan`} isCombineEnabled>
-          {(magic, info) => (
-            <TrahCan
-              ref={magic.innerRef}
-              isDraggingOver={info.isDraggingOver}
-              isDraggingFromThis={Boolean(info.draggingFromThisWith)}
-              {...magic.droppableProps}
-            >
-              Trash
-            </TrahCan>
-          )}
-        </Droppable>
       </DragDropContext>
     </ArcherContainer>
   );
