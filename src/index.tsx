@@ -2,15 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
 import { RecoilRoot } from "recoil";
 import { darkTheme } from "./theme";
 import App from "./App";
-const queryClient = new QueryClient();
 
 const GlobalStyle = createGlobalStyle`
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');

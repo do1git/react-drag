@@ -5,7 +5,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import { IMsg, msgsState, scnrSelector } from "./atoms";
 import Step from "./components/Step";
-import { useMainScroll } from "./hooks";
 
 const Wrapper = styled.div`
   box-sizing: content-box;
@@ -24,7 +23,6 @@ const Main = styled.div`
   justify-content: flex-start;
   align-items: flex-start;
   overflow: auto;
-  border: 5px blue solid;
 `;
 const ToolBar = styled.div`
   width: 100%;

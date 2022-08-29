@@ -3,7 +3,8 @@ import { ArcherElement } from "react-archer";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { IMsg, msgsState } from "../atoms";
+import { IMsg, MsgOpenTypes, msgOpenTypeState, msgsState } from "../atoms";
+import Content from "./Content";
 
 interface IWrapperProps {
   isDragging: boolean;
@@ -17,22 +18,21 @@ const Wrapper = styled.div<IWrapperProps>`
   min-height: 180px;
   background-color: ${(props) =>
     props.combineTargetFor
-      ? "purple"
+      ? props.theme.msgColor_back_title
       : props.isDragging
       ? "transparent"
-      : props.theme.msgColor};
+      : props.theme.msgColor_back};
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: ${(props) => (props.isDragging ? "" : "10px 0")};
-  padding: ${(props) => (props.isDragging ? "20px 8px" : "10px 8px")};
+  /* padding: ${(props) => (props.isDragging ? "20px 8px" : "10px 8px")}; */
   border-radius: 10px;
   box-sizing: border-box;
+  overflow: hidden;
 
-  :hover {
-    background-color: yellow;
-  }
   border: 1px solid black;
+  transition: background-color 0.3s ease-in-out;
 `;
 
 const Title = styled.div`
@@ -40,13 +40,16 @@ const Title = styled.div`
   font-weight: 800;
   font-size: 20px;
   width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: ${(props) => props.theme.msgColor_back_title};
 `;
-const Content = styled.div`
-  text-align: center;
-  width: 100%;
-  background-color: pink;
-  padding: 20px 0;
-`;
+// const Contents = styled.div`
+//   flex-direction: column;
+//   align-items: center;
+//   width: 100%;
+//   background-color: pink;
+// `;
 
 const Sons = styled.div`
   display: flex;
@@ -65,10 +68,15 @@ interface ISonResult {
 const Son = styled.div<{ isDragging?: boolean }>`
   margin: 10px 0;
   width: 100%;
-  background-color: #a29bfe;
-  border: 1px solid black;
-  border-radius: 10px;
+  padding: 2px;
+  background-color: ${(props) => props.theme.msgColor_back};
+  border: 1px solid ${(props) => props.theme.msgColor_back_title};
+  border-radius: ${(props) => props.theme.msgEle_border_radius};
   text-align: center;
+  :hover {
+    background-color: lightgray;
+    cursor: pointer;
+  }
 `;
 const SonBtn = styled(Son)``;
 
@@ -77,11 +85,25 @@ interface IMsgProps {
   parent_id: number;
   inMsg_index: number;
   name: string;
-  content: string;
+  content_ment: string;
+  content_memo: string;
+  content_syst: string;
+  content_work: string;
 }
 //row_seq, parent_id는 바로 상위에서 처리
-function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
+function Msg({
+  id,
+  parent_id,
+  inMsg_index,
+  name,
+  content_ment,
+  content_memo,
+  content_syst,
+  content_work,
+}: IMsgProps) {
   const [msgs, setMsgs] = useRecoilState(msgsState);
+  const msgOpenType = useRecoilValue(msgOpenTypeState);
+
   //자식찾기
   const findMySons = (parentId: number) => {
     return msgs
@@ -110,7 +132,10 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
         parent_id: toParentId,
         inMsg_index: inMsg_index,
         name: `new and my id is ${newId}`,
-        content: `은행위치 알려줄까?`,
+        content_ment: "추가메세지",
+        content_memo: "",
+        content_syst: "",
+        content_work: "",
       });
       console.log(oldMsgs);
       return oldMsgs;
@@ -158,58 +183,73 @@ function Msg({ id, parent_id, inMsg_index, name, content }: IMsgProps) {
   };
 
   return (
-    <Draggable
-      draggableId={`drag-${id}`}
-      index={inMsg_index}
-      isDragDisabled={id === 1 ? true : false}
-    >
-      {(magic, snapshot) => (
-        <Wrapper
-          isDragging={snapshot.isDragging}
-          draggingOver={Boolean(snapshot.draggingOver)}
-          combineTargetFor={Boolean(snapshot.combineTargetFor)}
-          ref={magic.innerRef}
-          {...magic.dragHandleProps}
-          {...magic.draggableProps}
+    <>
+      {msgOpenType === MsgOpenTypes.max ? (
+        <Draggable
+          draggableId={`drag-${id}`}
+          index={inMsg_index}
+          isDragDisabled={id === 1 ? true : false}
         >
-          <ArcherElement id={`aT${id}`}>
-            <Title>{name}</Title>
-          </ArcherElement>
+          {(magic, snapshot) => (
+            <Wrapper
+              isDragging={snapshot.isDragging}
+              draggingOver={Boolean(snapshot.draggingOver)}
+              combineTargetFor={Boolean(snapshot.combineTargetFor)}
+              ref={magic.innerRef}
+              {...magic.dragHandleProps}
+              {...magic.draggableProps}
+            >
+              <ArcherElement id={`aT${id}`}>
+                <Title>{name}</Title>
+              </ArcherElement>
 
-          <hr />
-          <Content>{content}</Content>
-          <hr />
-          {`drag-${id} // seq: ${inMsg_index}`}
-          <Sons>
-            {sonsResult.length !== 0 ? (
-              sonsResult.map((son) => (
-                <ArcherElement
-                  key={`aS${son.aId}`}
-                  id={`aS${son.aId}`}
-                  relations={[
-                    {
-                      targetId: `aT${son.aId}`,
-                      targetAnchor: "left",
-                      sourceAnchor: "right",
-                    },
-                  ]}
-                >
-                  <Son>{son.title}</Son>
-                </ArcherElement>
-              ))
-            ) : (
-              <></>
-            )}
-            <SonBtn onClick={onClickAddBtn} data-id={id}>
-              추가하기
-            </SonBtn>
-            <SonBtn onClick={onClickDelBtn} data-id={id}>
-              삭제하기
-            </SonBtn>
-          </Sons>
-        </Wrapper>
+              {content_work !== "" ? (
+                <Content msgType="업무" msgCore={content_work} />
+              ) : null}
+              {content_syst !== "" ? (
+                <Content msgType="전산" msgCore={content_syst} />
+              ) : null}
+              {content_ment !== "" ? (
+                <Content msgType="멘트" msgCore={content_ment} />
+              ) : null}
+              {content_memo !== "" ? (
+                <Content msgType="메모" msgCore={content_memo} />
+              ) : null}
+
+              <Sons>
+                {sonsResult.length !== 0 ? (
+                  sonsResult.map((son) => (
+                    <ArcherElement
+                      key={`aS${son.aId}`}
+                      id={`aS${son.aId}`}
+                      relations={[
+                        {
+                          targetId: `aT${son.aId}`,
+                          targetAnchor: "left",
+                          sourceAnchor: "right",
+                        },
+                      ]}
+                    >
+                      <Son>{son.title}</Son>
+                    </ArcherElement>
+                  ))
+                ) : (
+                  <></>
+                )}
+                <SonBtn onClick={onClickAddBtn} data-id={id}>
+                  추가하기
+                </SonBtn>
+                <SonBtn onClick={onClickDelBtn} data-id={id}>
+                  삭제하기
+                </SonBtn>
+              </Sons>
+            </Wrapper>
+          )}
+        </Draggable>
+      ) : (
+        <div></div>
       )}
-    </Draggable>
+    </>
   );
 }
 

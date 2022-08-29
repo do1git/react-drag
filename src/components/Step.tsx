@@ -11,7 +11,7 @@ interface IWrapperProps {
 
 const Wrapper = styled.div<IWrapperProps>`
   min-height: 100%;
-  width: 300px;
+  width: 250px;
 
   display: flex;
   flex-direction: column;

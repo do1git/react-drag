@@ -1,3 +1,4 @@
+import React from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 import { IMsg } from "../atoms";
@@ -17,16 +18,14 @@ const Wrapper = styled.div<IWrapperProps>`
   align-items: center;
 
   border-radius: 10px;
-  border: 3px solid red;
 
-  background-color: ${(props) =>
-    props.isDraggingOver
-      ? "pink"
-      : props.isDraggingFromThis
-      ? "orange"
-      : props.theme.stepColor};
+  background-color: ${
+    (props) => (props.isDraggingOver ? "lightblue" : "inherit")
+    // : props.isDraggingFromThis
+    // ? "orange"
+    // : props.theme.stepColor
+  };
   flex-grow: 1;
-  padding: 5px 0 200px 0;
   transition: background-color 0.3s ease-in-out;
 `;
 
@@ -48,14 +47,17 @@ function MsgGrp({ msgs, grpIndex }: IMsgGrpProps) {
             isDraggingFromThis={Boolean(info.draggingFromThisWith)}
             {...magic.droppableProps}
           >
-            drop-${msgs[0].parent_id}
+            {/* drop-${msgs[0].parent_id} */}
             {msgs.map((msg, msgIndex) => (
               <Msg
                 id={msg.id}
                 parent_id={msg.parent_id}
                 inMsg_index={msg.inMsg_index}
                 name={msg.name}
-                content={msg.content}
+                content_ment={msg.content_ment}
+                content_memo={msg.content_memo}
+                content_syst={msg.content_syst}
+                content_work={msg.content_work}
                 key={`msg${msg.id}`}
               />
             ))}
@@ -67,4 +69,4 @@ function MsgGrp({ msgs, grpIndex }: IMsgGrpProps) {
   }
 }
 
-export default MsgGrp;
+export default React.memo(MsgGrp);
